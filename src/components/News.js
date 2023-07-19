@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Spinner from "./Spinner.js";
+import InfiniteScroll from 'react-infinite-scroll-component';
 // import $ from "jquery";
 
 // Component,
@@ -567,7 +568,6 @@ export default function News(props) {
     const [totalResult, setTotalResult] = useState(0);
     const [article, setArticle] = useState([]);
 
-
     const capitalizeFLetter = (strVal) => {
         let string = strVal;
         return string[0].toUpperCase() +
@@ -583,42 +583,58 @@ export default function News(props) {
         var articleData = await data.json();
         setArticle(articleData.articles);
         setTotalResult(articleData.totalResults);
-
         setLoading(false);
     }
 
-    const nextPage = () => {
-        if (pages < Math.ceil(totalResult / props.pageSize)) {
-            setPages(pages + 1);
-            dataLoadingFun();
-        }
-    }
+    // const nextPage = () => {
+    //     if (pages < Math.ceil(totalResult / props.pageSize)) {
+    //         setPages(pages + 1);
+    //         dataLoadingFun();
+    //     }
+    // }
 
-    const prevPage = () => {
-        setPages(pages - 1);
-        dataLoadingFun();
-    }
+    // const prevPage = () => {
+    //     setPages(pages - 1);
+    //     dataLoadingFun();
+    // }
 
     useEffect(() => {
         dataLoadingFun();
         // eslint-disable-next-line
     }, [])
 
+    const fetchMoreData = async () => {
+        setPages(pages + 1);
+        var articleUrl = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=2d2bf652983f47fba4d1ec0385faba4f&page=${pages + 1}&pageSize=${props.pageSize}`;
+        var data = await fetch(articleUrl);
+        var articleData = await data.json();
+        setArticle(article.concat(articleData.articles));
+    }
+
     return (
-        <div className='container my-2'>
+        <>
             <h1 className='text-center'>News App - Top {props.category} headline</h1>
             <div className='text-center'>{loading && <Spinner />}</div>
-            <div className='row'>
-                {!loading && article.map((element) => {
-                    return <div className='col-md-4' key={element.url}>
-                        <Newsitem source={element.source.name} date={element.publishedAt} author={element.author} title={element.title === null ? "No Title" : element.title.slice(0, 30)} description={element.description === null ? "No Description" : element.description.slice(0, 80)} imageUrl={element.urlToImage === null ? "https://cdn.vox-cdn.com/thumbor/0yqcZUaFgtYFDr7BbChGXEx_qEY=/0x0:2040x1360/1200x628/filters:focal(1020x680:1021x681)/cdn.vox-cdn.com/uploads/chorus_asset/file/23951390/STK088_VRG_Illo_N_Barclay_5_spotify.jpg" : element.urlToImage} news_Url={element.url} />
+            <InfiniteScroll
+                dataLength={article.length}
+                next={fetchMoreData}
+                hasMore={article.length !== totalResult}
+                loader={<Spinner />}
+            >
+                <div className='container my-2'>
+                    <div className='row'>
+                        {article.map((element) => {
+                            return <div className='col-md-4' key={element.url}>
+                                <Newsitem source={element.source.name} date={element.publishedAt} author={element.author} title={element.title === null ? "No Title" : element.title.slice(0, 30)} description={element.description === null ? "No Description" : element.description.slice(0, 80)} imageUrl={element.urlToImage === null ? "https://cdn.vox-cdn.com/thumbor/0yqcZUaFgtYFDr7BbChGXEx_qEY=/0x0:2040x1360/1200x628/filters:focal(1020x680:1021x681)/cdn.vox-cdn.com/uploads/chorus_asset/file/23951390/STK088_VRG_Illo_N_Barclay_5_spotify.jpg" : element.urlToImage} news_Url={element.url} />
+                            </div>
+                        })}
                     </div>
-                })}
-            </div>
-            <div className='d-flex justify-content-between'>
+                </div>
+            </InfiniteScroll>
+            {/* <div className='d-flex justify-content-between'>
                 <button type="button" onClick={prevPage} id="prevBtn" className="btn btn-primary" disabled={pages <= 1}>&laquo; prev</button>
                 <button type="button" onClick={nextPage} id="nextBtn" className="btn btn-primary" disabled={pages >= Math.ceil(totalResult / props.pageSize)}>Next &raquo;</button>
-            </div>
-        </div>
+            </div> */}
+        </>
     )
 }
