@@ -607,8 +607,8 @@ export default function News(props) {
     }, [])
 
     const fetchMoreData = async () => {
-        setPages(pages + 1);
         var articleUrl = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${pages + 1}&pageSize=${props.pageSize}`;
+        setPages(pages + 1);
         var data = await fetch(articleUrl);
         var articleData = await data.json();
         setArticle(article.concat(articleData.articles));
@@ -616,7 +616,7 @@ export default function News(props) {
 
     return (
         <>
-            <h1 className='text-center'>News App - Top {props.category} headline</h1>
+            <h1 className='text-center' style={{ marginTop: "80px" }}>News App - Top {props.category} headline</h1>
             {loading && <Spinner />}
             <InfiniteScroll
                 dataLength={article.length}
